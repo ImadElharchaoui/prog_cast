@@ -25,20 +25,23 @@ export async function POST(req) {
       fs.mkdirSync(uploadDir);
     }
 
-    // Function to save a file
     const saveFile = async (file, folder) => {
-      const relativePath = file.webkitRelativePath || file.name;
-      const filePath = path.join(uploadDir, folder, relativePath);
-      const dirPath = path.dirname(filePath); 
-
-      if (!fs.existsSync(dirPath)) {
-        fs.mkdirSync(dirPath, { recursive: true });
+      const relativePath = path.join('uploads', folder, file.webkitRelativePath || file.name);
+      const absolutePath = path.join(process.cwd(), 'public', relativePath);
+    
+      // Ensure the directory exists
+      const dir = path.dirname(absolutePath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
       }
-
+    
       const buffer = Buffer.from(await file.arrayBuffer());
-      fs.writeFileSync(filePath, buffer);
-      return filePath;
+      fs.writeFileSync(absolutePath, buffer);
+    
+      return relativePath;
     };
+    
+    
 
     const audioFilePath = await saveFile(audioFile, 'audio');
     const imageFilePath = await saveFile(imageFile, 'images');
@@ -52,9 +55,9 @@ export async function POST(req) {
       title,
       description,
       audioFile: audioFilePath, 
-      imageFile: imageFilePath,  
+      image: imageFilePath,  
       programmingFiles: programmingFilePaths,
-      categories, // Store the selected categories
+      // Store the selected categories
     });
 
     await podcast.save();
