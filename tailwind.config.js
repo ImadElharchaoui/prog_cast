@@ -8,10 +8,16 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        'text': '#050505',
+        'background': '#f9fcf8',
+        'primary': '#82d133',
+        'secondary': '#8bdada',
+        'accent': '#69a6ce',
+      },
+      fontFamily: {
+        Edu: ["'Edu AU VIC WA NT Hand'", 'sans-serif'],
       },
     },
   },
-  plugins: [],
+  
 };
