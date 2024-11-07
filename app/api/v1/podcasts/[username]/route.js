@@ -14,7 +14,7 @@ export const GET = async (req, { params }) => {
     }
 
     // Fetch podcasts associated with the user
-    const podcasts = await Podcast.find({ podcaster: user._id });
+    const podcasts = await Podcast.find({ podcaster: user._id }, "_id title image podcaster views createdAt").populate("podcaster", "username");
 
     return new Response(JSON.stringify(podcasts), { status: 200 });
   } catch (error) {

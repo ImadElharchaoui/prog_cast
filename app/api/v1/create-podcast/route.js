@@ -15,49 +15,57 @@ export async function POST(req) {
     const imageFile = formData.get('imageFile');
     const userID = formData.get('userID');
     
-    // Get all programming files from the folder
+    // Retrieve all programming files and categories
     const programmingFiles = formData.getAll('programmingFiles');
-    const categories = formData.getAll('categories'); // Retrieve categories
+    const categories = formData.getAll('categories');
 
-    // Define a path to save the uploaded files
-    const uploadDir = path.join(process.cwd(), 'uploads');
+    // Define base upload directory within 'public' for public accessibility
+    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
     if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir);
+      fs.mkdirSync(uploadDir, { recursive: true });
     }
 
+    // Helper function to save individual files
     const saveFile = async (file, folder) => {
       const relativePath = path.join('uploads', folder, file.webkitRelativePath || file.name);
       const absolutePath = path.join(process.cwd(), 'public', relativePath);
-    
-      // Ensure the directory exists
+
       const dir = path.dirname(absolutePath);
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
       }
-    
+
       const buffer = Buffer.from(await file.arrayBuffer());
       fs.writeFileSync(absolutePath, buffer);
-    
+
       return relativePath;
     };
-    
-    
 
+    // Save audio and image files as usual
     const audioFilePath = await saveFile(audioFile, 'audio');
     const imageFilePath = await saveFile(imageFile, 'images');
 
-    const programmingFilePaths = await Promise.all(
-      programmingFiles.map((file) => saveFile(file, 'programming'))
+    // Create a folder for programming files
+    const programmingFolder = path.join('uploads', 'programming', `${userID}_${Date.now()}`);
+    const programmingFolderPath = path.join(process.cwd(), 'public', programmingFolder);
+    if (!fs.existsSync(programmingFolderPath)) {
+      fs.mkdirSync(programmingFolderPath, { recursive: true });
+    }
+
+    // Save each programming file to this folder
+    await Promise.all(
+      programmingFiles.map((file) => saveFile(file, programmingFolder))
     );
 
+    // Create and save the new Podcast document
     const podcast = new Podcast({
       podcaster: userID,
       title,
       description,
-      audioFile: audioFilePath, 
-      image: imageFilePath,  
-      programmingFiles: programmingFilePaths,
-      // Store the selected categories
+      audioFile: audioFilePath,
+      image: imageFilePath,
+      programmingFiles: programmingFolder,  // Save only the folder path
+      
     });
 
     await podcast.save();
