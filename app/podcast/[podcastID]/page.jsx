@@ -38,42 +38,12 @@ export default function Page({ params }) {
 
   return (
     <div className="flex flex-col h-[90%]">
-      {/* Left Sidebar for File Management */}
-      {console.log("podcast",podcast)}
-      <aside className=" bg-gray-100 h-[60%]">
+      
+      <div className=" bg-gray-100 h-[60%]">
         <h2 className="text-lg font-bold mb-2 text-gray-800">Podcast Files</h2>
-        <FileExplorer mainFolder={podcast.programmingFiles} podcastID={podcastID} />
-      </aside>
+        <FileExplorer mainFolder={podcast.programmingFiles} podcastID={podcastID} user={user} podcast={podcast} />
+      </div>
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col">
-        <div className="flex-1 p-4 border-b border-gray-300">
-          
-          {/* Audio Player */}
-          <div className="flex items-center space-x-4">
-            <button className="p-2 bg-blue-500 text-white rounded">Play</button>
-            <input type="range" className="w-32" />
-          </div>
-          <h1 className="text-3xl font-bold mb-4 text-gray-800">{podcast.title}</h1>
-          <p className="text-lg text-gray-600 mb-4">{podcast.description}</p>
-
-        </div>
-
-        {/* Bottom User Info */}
-        <footer className="border-t border-gray-300 p-4 flex justify-between items-center bg-gray-100">
-          {/* User Profile */}
-          {user && (
-            <div className="flex items-end">
-                <img src={user.image} className="h-14 w-14 rounded-full mr-4" alt="" srcset="" />
-                <div>
-                    <h3 className="text-lg font-bold text-gray-800">{user.username}</h3>
-                    <p className="text-sm text-gray-600">{user.totalSubs} followers</p>
-                </div>
-              
-            </div>
-          )}
-        </footer>
-      </main>
     </div>
   );
 }

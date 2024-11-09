@@ -2,7 +2,7 @@ import { useRouter } from "next/navigation";
 export default function PodcastCard({ podcast }) {
   const route = useRouter();
   return (
-    <li className="p-4 border rounded shadow"
+    <li className="p-4 border rounded shadow cursor-pointer"
         onClick={()=>{route.push(`/podcast/${podcast._id}`)}}>
       <div className="flex items-center">
         {console.log(podcast)}

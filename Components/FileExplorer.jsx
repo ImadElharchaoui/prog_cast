@@ -1,14 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import Cookies from "js-cookie";
 
-export default function FileExplorer({ mainFolder, podcastID }) {
-  const [fileTree, setFileTree] = useState([]);  // Initialize as an array
+export default function FileExplorer({ mainFolder, podcastID, user, podcast }) {
+  const [fileTree, setFileTree] = useState([]);
   const [expandedFolders, setExpandedFolders] = useState(new Set());
   const [selectedFileContent, setSelectedFileContent] = useState("");
   const [selectedFile, setSelectedFile] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [audioProgress, setAudioProgress] = useState(0);
+  const audioRef = useRef(null);
+  const BasePath = "http://localhost:3000/";
 
   useEffect(() => {
     const fetchFiles = async () => {
@@ -16,17 +21,14 @@ export default function FileExplorer({ mainFolder, podcastID }) {
         const response = await fetch(`/api/v1/files/all/${encodeURIComponent(mainFolder)}`);
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         const data = await response.json();
-        console.log("data", data.fileTree)
-        // Ensure data is an array before setting it to fileTree
         setFileTree(data.fileTree);
-        console.log("fileTree", fileTree)
       } catch (err) {
         setError(err.message || "Failed to load files");
       } finally {
-        setLoading(false); // Ensure loading is false after the fetch completes (success or failure)
+        setLoading(false);
       }
     };
-    
+
     fetchFiles();
   }, [mainFolder, podcastID]);
 
@@ -40,10 +42,8 @@ export default function FileExplorer({ mainFolder, podcastID }) {
 
   const handleFileClick = async (filePath, fileName) => {
     setSelectedFile(fileName);
-    
     try {
-        const fullPath = `C:\\Users\\ULTRAPC\\Desktop\\Projects\\nextapp\\prog-cast\\public\\uploads\\${mainFolder}\\${filePath}`
-        console.log("path", fullPath)
+      const fullPath = `C:\\Users\\ULTRAPC\\Desktop\\Projects\\nextapp\\prog-cast\\public\\uploads\\${mainFolder}\\${filePath}`;
       const response = await fetch(`/api/v1/files/${encodeURIComponent(fullPath)}`);
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       const data = await response.json();
@@ -54,9 +54,8 @@ export default function FileExplorer({ mainFolder, podcastID }) {
   };
 
   const renderFileTree = (nodes, path = "") =>
-    Array.isArray(nodes)  // Check if nodes is an array
+    Array.isArray(nodes)
       ? nodes.map((node) => {
-        
           const newPath = path ? `${path}/${node.name}` : node.name;
           if (node.type === "file") {
             return (
@@ -83,40 +82,114 @@ export default function FileExplorer({ mainFolder, podcastID }) {
                 {node.name}
               </div>
               {expandedFolders.has(newPath) && (
-                <ul className="ml-6">
-                  {renderFileTree(node.children, newPath)}
-                </ul>
+                <ul className="ml-6">{renderFileTree(node.children, newPath)}</ul>
               )}
             </li>
           );
         })
-      : null;  // Return null if nodes is not an array
+      : null;
+
+  const handlePlayPause = () => {
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  const handleAudioTimeUpdate = () => {
+    const currentTime = audioRef.current.currentTime;
+    const duration = audioRef.current.duration;
+    setAudioProgress((currentTime / duration) * 100 || 0);
+  };
+
+  const handleSliderChange = (e) => {
+    const value = e.target.value;
+    setAudioProgress(value);
+    if (audioRef.current) {
+      audioRef.current.currentTime = (audioRef.current.duration * value) / 100;
+    }
+  };
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
 
   return (
-    <div className="flex h-full">
-      {/* Sidebar for File Management */}
-      <aside className="w-1/4 bg-gray-100 p-4 border-r border-gray-300">
-       
-        <ul className="space-y-1">{renderFileTree(fileTree)}</ul>
-      </aside>
+    <div className="flex flex-col h-screen">
+      {/* Main content section */}
+      <div className="flex flex-1">
+        {/* File explorer section */}
+        <aside className="w-1/4 bg-gray-100 p-4 border-r border-gray-300 overflow-y-auto">
+          <ul className="space-y-1">{renderFileTree(fileTree)}</ul>
+        </aside>
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col">
-        {/* File Content Editor */}
-        <div className="flex-1 p-4 border-b border-gray-300">
+        {/* File preview section */}
+        <main className="flex-1 p-4">
           <h2 className="text-xl font-semibold mb-2 text-gray-800">
             {selectedFile || "Select a file"}
           </h2>
           <textarea
             readOnly
             value={selectedFileContent}
-            className="w-full h-[90%] p-2 bg-white border border-gray-300 rounded resize-none focus:outline-none"
+            className="w-full h-[calc(100%-2rem)] p-2 bg-white border border-gray-300 rounded resize-none focus:outline-none"
           />
+        </main>
+      </div>
+
+      {/* Bottom section with user and audio controls */}
+      <div className="flex flex-col  w-fullitems-center bg-white border-t border-gray-300 p-4 space-x-4">
+        {/* Audio player */}
+        <div className="flex-1 flex flex-col">
+          <div className="flex items-center mt-2 space-x-4 mb-6">
+            <button onClick={handlePlayPause} className="p-2 bg-blue-500 text-white rounded w-16">
+              {isPlaying ? "Pause" : "Play"}
+            </button>
+            <audio
+              ref={audioRef}
+              src={BasePath + podcast.audioFile}
+              onTimeUpdate={handleAudioTimeUpdate}
+              className="hidden"
+            />
+            <input
+              type="range"
+              className="w-full"
+              value={audioProgress}
+              onChange={handleSliderChange}
+            />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-800">{podcast.title}</h1>
+          
         </div>
-      </main>
+
+        {/* User info */}
+        <div className="flex items-center space-x-4 pt-8 mt-4">
+          <img
+            src={user.image}
+            alt=""
+            className="h-14 w-14 rounded-full"
+          />
+          <div>
+            <h3 className="text-lg font-bold text-gray-800">{user.username}</h3>
+            <p className="text-sm text-gray-600">{user.totalSubs} followers</p>
+          </div>
+          <div>
+            {Cookies.get("userID") == user._id && (
+              <button className="w-32 py-1 rounded-md bg-secondary text-white">Subscribe</button>
+            )}
+          </div>
+        </div>
+        {/*description */}
+        <div className="mt-8 bg-gray-300 text-black rounded-xl p-4">
+          <div className="flex mb-4">
+            <p>{podcast.views} views - </p>
+            <p>{new Date(podcast.createdAt).toLocaleDateString()}</p>
+          </div>
+          <p>{podcast.description}</p>
+        </div>
+        
+
+      </div>
     </div>
   );
 }
