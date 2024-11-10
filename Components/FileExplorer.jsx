@@ -11,6 +11,7 @@ export default function FileExplorer({ mainFolder, podcastID, user, podcast }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
   const [audioProgress, setAudioProgress] = useState(0);
   const audioRef = useRef(null);
   const BasePath = "http://localhost:3000/";
@@ -28,8 +29,19 @@ export default function FileExplorer({ mainFolder, podcastID, user, podcast }) {
         setLoading(false);
       }
     };
+    const fetchIsFollowing = async () =>{
+      try{
+        const response = await fetch(`/api/v1/follow/isFollow?userID=${Cookies.get("userID")}&podcasterName=${user.username}`)
+        const data = await response.json()
+        setIsFollowing(data.isFollowing)
+      }catch(err){
+        console.log(err)
+      }
+      
+    }
 
     fetchFiles();
+    fetchIsFollowing();
   }, [mainFolder, podcastID]);
 
   const toggleFolder = (folderName) => {
@@ -174,8 +186,9 @@ export default function FileExplorer({ mainFolder, podcastID, user, podcast }) {
             <p className="text-sm text-gray-600">{user.totalSubs} followers</p>
           </div>
           <div>
-            {Cookies.get("userID") == user._id && (
-              <button className="w-32 py-1 rounded-md bg-secondary text-white">Subscribe</button>
+            
+            {Cookies.get("userID") != user._id && (
+              <button className="w-32 py-1 rounded-md bg-secondary text-white">{isFollowing ? "Subscribed" : "Subscribe"}</button>
             )}
           </div>
         </div>
