@@ -29,20 +29,54 @@ export default function FileExplorer({ mainFolder, podcastID, user, podcast }) {
         setLoading(false);
       }
     };
-    const fetchIsFollowing = async () =>{
-      try{
-        const response = await fetch(`/api/v1/follow/isFollow?userID=${Cookies.get("userID")}&podcasterName=${user.username}`)
-        const data = await response.json()
-        setIsFollowing(data.isFollowing)
-      }catch(err){
-        console.log(err)
+
+    const fetchIsFollowing = async () => {
+      try {
+        const response = await fetch("/api/v1/follow/isFollow", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userID: Cookies.get("userID"), podcasterName: user.username }),
+        });
+        const data = await response.json();
+        setIsFollowing(data.isFollowing);
+      } catch (err) {
+        console.log(err);
       }
-      
-    }
+    };
 
     fetchFiles();
     fetchIsFollowing();
-  }, [mainFolder, podcastID]);
+  }, [mainFolder, podcastID, user.username]);
+
+  const handleFollow = async () => {
+    try {
+      const response = await fetch(`/api/v1/follow/makeFollow`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userID: Cookies.get("userID"), podcasterName: user.username }),
+      });
+      const data = await response.json();
+      if (data.message === "Followed successfully") setIsFollowing(true);
+      user.totalSubs++;
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleUnfollow = async () => {
+    try {
+      const response = await fetch(`/api/v1/follow/removeFollow`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userID: Cookies.get("userID"), podcasterName: user.username }),
+      });
+      const data = await response.json();
+      if (data.message === "Unfollowed successfully") setIsFollowing(false);
+      user.totalSubs--;
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   const toggleFolder = (folderName) => {
     setExpandedFolders((prev) => {
@@ -150,7 +184,7 @@ export default function FileExplorer({ mainFolder, podcastID, user, podcast }) {
       </div>
 
       {/* Bottom section with user and audio controls */}
-      <div className="flex flex-col  w-fullitems-center bg-white border-t border-gray-300 p-4 space-x-4">
+      <div className="flex flex-col w-full bg-white border-t border-gray-300 p-4 space-x-4">
         {/* Audio player */}
         <div className="flex-1 flex flex-col">
           <div className="flex items-center mt-2 space-x-4 mb-6">
@@ -171,28 +205,28 @@ export default function FileExplorer({ mainFolder, podcastID, user, podcast }) {
             />
           </div>
           <h1 className="text-2xl font-bold text-gray-800">{podcast.title}</h1>
-          
         </div>
 
         {/* User info */}
         <div className="flex items-center space-x-4 pt-8 mt-4">
-          <img
-            src={user.image}
-            alt=""
-            className="h-14 w-14 rounded-full"
-          />
+          <img src={user.image} alt="" className="h-14 w-14 rounded-full" />
           <div>
             <h3 className="text-lg font-bold text-gray-800">{user.username}</h3>
             <p className="text-sm text-gray-600">{user.totalSubs} followers</p>
           </div>
           <div>
-            
-            {Cookies.get("userID") != user._id && (
-              <button className="w-32 py-1 rounded-md bg-secondary text-white">{isFollowing ? "Subscribed" : "Subscribe"}</button>
+            {Cookies.get("userID") !== user._id && (
+              <button
+                className="w-32 py-1 rounded-md bg-secondary text-white"
+                onClick={isFollowing ? handleUnfollow : handleFollow}
+              >
+                {isFollowing ? "Subscribed" : "Subscribe"}
+              </button>
             )}
           </div>
         </div>
-        {/*description */}
+
+        {/* Description */}
         <div className="mt-8 bg-gray-300 text-black rounded-xl p-4">
           <div className="flex mb-4">
             <p>{podcast.views} views - </p>
@@ -200,8 +234,6 @@ export default function FileExplorer({ mainFolder, podcastID, user, podcast }) {
           </div>
           <p>{podcast.description}</p>
         </div>
-        
-
       </div>
     </div>
   );
