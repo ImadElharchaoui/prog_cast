@@ -9,7 +9,7 @@ export const GET = async (req, {params}) => {
         await connection();  // Connect to the database
 
        
-        const user = await User.findById( params.userID ).populate("substo", "username");
+        const user = await User.findById( params.userID ).populate("substo", "username image");
         
         if (!user) {
             return new Response("Error user is not found", { status: 401 });

@@ -66,6 +66,7 @@ export default function UserProfile({ params }) {
         <div>
           <h1 className="text-3xl font-bold mb-4">{user.username}</h1>
           <p className="text-sm text-gray-600">Joined: {new Date(user.createdAt).toLocaleDateString()}</p>
+          <p className='text-sm text-gray-600'>{user.totalSubs} subs</p>
         </div>
       </div>
 

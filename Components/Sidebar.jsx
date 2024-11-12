@@ -67,9 +67,9 @@ const Sidebar = () => {
               <ul className="space-y-2 mt-2">
                 {userData && userData.substo.length > 0 ? (
                   userData.substo.map((sub) => (
-                    <li key={sub._id} className="hover:bg-gray-700 p-2 rounded"
+                    <li key={sub._id} className="hover:bg-gray-700 p-2 rounded flex items-center cursor-pointer"
                         onClick={() => router.push(`/profile/${sub.username}`)}>
-                      {sub.username}
+                      <img src={sub.image} alt="" srcset={sub.image} className="h-8 w-8 rounded-full mr-2" />{sub.username}
                     </li>
                   ))
                 ) : (
