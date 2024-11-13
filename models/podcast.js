@@ -6,6 +6,10 @@ const LikeSchema = new Schema({
     ref: 'User',  // References the User who liked
     required: true,
   },
+  type: {
+    type: Boolean,
+    required: true
+  },
   createdAt: {
     type: Date,
     default: Date.now,

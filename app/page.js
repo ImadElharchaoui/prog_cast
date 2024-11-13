@@ -5,10 +5,6 @@ const page = () => {
   return (
     <div>
       <Heros />
-      <Heros />
-      <Heros />
-      <Heros />
-      <Heros />
     </div>
   )
 }

@@ -2,6 +2,11 @@
 
 import { useState, useEffect, useRef } from "react";
 import Cookies from "js-cookie";
+import { TbFileLike } from "react-icons/tb";
+import { HiOutlineSaveAs } from "react-icons/hi";
+import { FaShare } from "react-icons/fa";
+
+
 
 export default function FileExplorer({ mainFolder, podcastID, user, podcast }) {
   const [fileTree, setFileTree] = useState([]);
@@ -43,10 +48,25 @@ export default function FileExplorer({ mainFolder, podcastID, user, podcast }) {
         console.log(err);
       }
     };
-
+   
+    
     fetchFiles();
     fetchIsFollowing();
-  }, [mainFolder, podcastID, user.username]);
+  }, [podcastID]);
+
+  const fetchAddViews = async() =>{
+    await fetch("/api/v1/views", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({PodcastID : podcastID})
+    })
+    //its 2 now . deleting strict mode to fix it (outside of dev)
+    console.log("view Added by 1")
+  }
+
+  useEffect(() => {
+    fetchAddViews();
+  }, []);
 
   const handleFollow = async () => {
     try {
@@ -206,25 +226,32 @@ export default function FileExplorer({ mainFolder, podcastID, user, podcast }) {
           </div>
           <h1 className="text-2xl font-bold text-gray-800">{podcast.title}</h1>
         </div>
-
-        {/* User info */}
-        <div className="flex items-center space-x-4 pt-8 mt-4">
-          <img src={user.image} alt="" className="h-14 w-14 rounded-full" />
-          <div>
-            <h3 className="text-lg font-bold text-gray-800">{user.username}</h3>
-            <p className="text-sm text-gray-600">{user.totalSubs} followers</p>
+        <div className="flex justify-between items-center pr-60">
+           {/* User info */}
+          <div className="flex items-center space-x-4 pt-8 mt-4">
+            <img src={user.image} alt="" className="h-14 w-14 rounded-full" />
+            <div>
+              <h3 className="text-lg font-bold text-gray-800">{user.username}</h3>
+              <p className="text-sm text-gray-600">{user.totalSubs} followers</p>
+            </div>
+            <div>
+              {Cookies.get("userID") !== user._id && (
+                <button
+                  className="w-32 py-1 rounded-md bg-secondary text-white"
+                  onClick={isFollowing ? handleUnfollow : handleFollow}
+                >
+                  {isFollowing ? "Subscribed" : "Subscribe"}
+                </button>
+              )}
+            </div>
           </div>
-          <div>
-            {Cookies.get("userID") !== user._id && (
-              <button
-                className="w-32 py-1 rounded-md bg-secondary text-white"
-                onClick={isFollowing ? handleUnfollow : handleFollow}
-              >
-                {isFollowing ? "Subscribed" : "Subscribe"}
-              </button>
-            )}
+          <div className="flex space-x-4 items-center">
+            <button className="flex bg-gray-400 rounded-3xl p-2 px-3 font-bold"><TbFileLike size={30} className="mr-2"/> Likes</button>
+            <button className="flex bg-gray-400 rounded-3xl p-2 px-3 font-bold"><HiOutlineSaveAs size={30} className="mr-2"/>Save It</button>
+            <button className="flex bg-gray-400 rounded-3xl p-2 px-3 font-bold"><FaShare size={30} className="mr-2"/>Share</button>
           </div>
         </div>
+       
 
         {/* Description */}
         <div className="mt-8 bg-gray-300 text-black rounded-xl p-4">

@@ -7,7 +7,7 @@ export async function GET() {
     await connection();
 
     const podcasts = await Podcast.find({}, 'title image podcaster views createdAt')
-      .populate('podcaster', 'username'); // Populate podcaster with username field
+      .populate('podcaster', 'username image'); // Populate podcaster with username field
 
     return NextResponse.json(podcasts);
   } catch (error) {

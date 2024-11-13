@@ -1,28 +1,37 @@
-import React from 'react'
+"use client";
 
-const Heros = () => {
+import { useEffect, useState } from 'react';
+import PodcastCard from '@/Components/PodcastCard'; // Adjust the path based on your folder structure
+
+export default function Podcasts() {
+  const [podcasts, setPodcasts] = useState([]);
+
+  useEffect(() => {
+    const fetchPodcasts = async () => {
+      try {
+        const response = await fetch('/api/v1/podcasts/all');
+        const data = await response.json();
+        setPodcasts(data);
+      } catch (error) {
+        console.error('Failed to fetch podcasts:', error);
+      }
+    };
+
+    fetchPodcasts();
+  }, []);
+
   return (
-    //silde show populare podcasts  gad lwan
-    <div className="carousel w-full">
-    <div id='slide1' className='carousel-item relative w-full'>
-        <div className="hero bg-base-200 ">
-            <div className="hero-content flex-col lg:flex-row">
-                <img
-                src="https://img.daisyui.com/images/stock/photo-1635805737707-575885ab0820.webp"
-                className="max-w-sm rounded-lg shadow-2xl" />
-                <div>
-                <h1 className="text-5xl font-bold">Box Office News!</h1>
-                <p className="py-6">
-                    Provident cupiditate voluptatem et in. Quaerat fugiat ut assumenda excepturi exercitationem
-                    quasi. In deleniti eaque aut repudiandae et a id nisi.
-                </p>
-                <button className="btn btn-primary">Get Started</button>
-                </div>
-            </div>
-        </div>
+    <div className="max-w-4xl p-6">
+      <h1 className="text-3xl font-bold mb-4">Podcasts</h1>
+      {podcasts.length === 0 ? (
+        <p>No podcasts available.</p>
+      ) : (
+        <ul className="flex space-y-4">
+          {podcasts.map((podcast) => (
+            <PodcastCard key={podcast._id} podcast={podcast} />
+          ))}
+        </ul>
+      )}
     </div>
-    </div>
-  )
+  );
 }
-
-export default Heros
